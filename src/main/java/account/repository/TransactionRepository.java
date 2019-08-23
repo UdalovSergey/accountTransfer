@@ -9,22 +9,22 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
-public class TransactionInmemoryRepository implements Repository<Transaction> {
+public class TransactionRepository implements Repository<Transaction> {
 
-    private static TransactionInmemoryRepository repository;
+    private static TransactionRepository repository;
 
     private final Map<Long, Transaction> transactions = new ConcurrentHashMap<>();
     private AtomicLong idCounter = new AtomicLong(0);
 
-    private TransactionInmemoryRepository() {
+    private TransactionRepository() {
     }
 
 
-    public static TransactionInmemoryRepository getInstance() {
+    public static TransactionRepository getInstance() {
         if (repository == null) {
-            synchronized (TransactionInmemoryRepository.class) {
+            synchronized (TransactionRepository.class) {
                 if (repository == null) {
-                    repository = new TransactionInmemoryRepository();
+                    repository = new TransactionRepository();
                 }
             }
         }
@@ -41,7 +41,7 @@ public class TransactionInmemoryRepository implements Repository<Transaction> {
     @Override
     public Collection<Transaction> getAll() {
         return transactions.values().stream()
-                .map(transaction -> new Transaction(transaction))
+                .map(Transaction::new)
                 .collect(Collectors.toList());
     }
 

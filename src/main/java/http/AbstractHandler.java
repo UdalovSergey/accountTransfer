@@ -1,5 +1,7 @@
 package http;
 
+import account.exception.AccountNotFoundException;
+import account.exception.TransactionProcessingException;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -22,8 +24,10 @@ public abstract class AbstractHandler implements HttpHandler {
     protected static final int STATUS_OK = 200;
     protected static final int STATUS_CREATED = 201;
     protected static final int STATUS_BAD_REQUEST = 400;
+    protected static final int STATUS_FORBIDDEN = 403;
     protected static final int STATUS_NOT_FOUND = 404;
     private static final int STATUS_METHOD_NOT_ALLOWED = 405;
+    private static final int STATUS_INTERNAL_SERVER_ERROR = 500;
 
     private static final int NO_RESPONSE_LENGTH = -1;
 
@@ -32,33 +36,34 @@ public abstract class AbstractHandler implements HttpHandler {
 
     private static final String METHOD_GET = "GET";
     private static final String METHOD_POST = "POST";
-    private static final String ALLOWED_METHODS = METHOD_GET + "," + METHOD_POST;
 
     public void handle(HttpExchange he) throws IOException {
         try {
-            final Headers headers = he.getResponseHeaders();
             final String requestMethod = he.getRequestMethod().toUpperCase();
             final Map<String, String> requestParameters = getRequestParameters(he.getRequestURI());
             switch (requestMethod) {
                 case METHOD_GET:
-                    processResponse(get(he, requestParameters), headers, he);
+                    processResponse(get(he, requestParameters), he);
                     break;
                 case METHOD_POST:
                     String requestBody = getRequestBody(he);
-                    processResponse(post(he, requestParameters, requestBody), headers, he);
+                    processResponse(post(he, requestParameters, requestBody), he);
                     break;
                 default:
-                    headers.set(HEADER_ALLOW, ALLOWED_METHODS);
-                    he.sendResponseHeaders(STATUS_METHOD_NOT_ALLOWED, NO_RESPONSE_LENGTH);
+                    processResponse(buildErrorResponse(STATUS_METHOD_NOT_ALLOWED, ""), he);
                     break;
             }
+        } catch (RuntimeException exception) {
+            processResponse(buildErrorResponse(exception), he);
         } finally {
             he.close();
         }
     }
 
-    private void processResponse(ResponseBody responseBody, Headers headers, HttpExchange he) throws IOException {
+    private void processResponse(ResponseBody responseBody, HttpExchange he) throws IOException {
+        final Headers headers = he.getResponseHeaders();
         headers.set(HEADER_CONTENT_TYPE, String.format("application/json; charset=%s", CHARSET));
+
         String body = responseBody.getResponseBody();
         final byte[] rawResponseBody = body == null ? new byte[]{} : body.getBytes(CHARSET);
         he.sendResponseHeaders(responseBody.getStatusCode(), rawResponseBody.length);
@@ -85,6 +90,19 @@ public abstract class AbstractHandler implements HttpHandler {
         return body.toString();
     }
 
+    private ResponseBody buildErrorResponse(RuntimeException exception) {
+        if (exception instanceof AccountNotFoundException) {
+            return buildErrorResponse(STATUS_NOT_FOUND, exception.getMessage());
+        } else if (exception instanceof TransactionProcessingException) {
+            return buildErrorResponse(STATUS_FORBIDDEN, exception.getMessage());
+        }
+        return buildErrorResponse(STATUS_INTERNAL_SERVER_ERROR, exception.getMessage());
+    }
+
+    private ResponseBody buildErrorResponse(int status, String message) {
+        return new ResponseBody(message, status);
+    }
+
     private static Map<String, String> getRequestParameters(final URI requestUri) {
         final Map<String, String> requestParameters = new LinkedHashMap<>();
         final String requestQuery = requestUri.getRawQuery();
@@ -105,28 +123,6 @@ public abstract class AbstractHandler implements HttpHandler {
             return URLDecoder.decode(urlComponent, CHARSET.name());
         } catch (final UnsupportedEncodingException ex) {
             throw new InternalError(ex);
-        }
-    }
-
-    public static class ResponseBody {
-        private final String responseBody;
-        private final int statusCode;
-
-        public ResponseBody(String responseBody, int statusCode) {
-            this.responseBody = responseBody;
-            this.statusCode = statusCode;
-        }
-
-        public ResponseBody(int statusCode) {
-            this(null, statusCode);
-        }
-
-        public String getResponseBody() {
-            return responseBody;
-        }
-
-        public int getStatusCode() {
-            return statusCode;
         }
     }
 

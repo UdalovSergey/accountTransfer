@@ -50,7 +50,7 @@ public class TransactionExecutor {
         }
 
         /*
-            Attention - the order of the transaction is not guaranteed, because two different worker can get different
+            Attention - the processing order of the transaction is not guaranteed, because two different worker can get different
             Transactions of the same account.
          */
         private void process(Transaction transaction) {
@@ -61,7 +61,7 @@ public class TransactionExecutor {
             synchronized (lock1) {
                 synchronized (lock2) {
                     if (transaction.getStatus() != TransactionStatus.NEW) {
-                        throw new RuntimeException("Transaction in wrong state");
+                        throw new RuntimeException("Transaction has the wrong state");
                     }
                     Account accountFrom = accountService.get(accFromId);
                     Account accountTo = accountService.get(accToId);

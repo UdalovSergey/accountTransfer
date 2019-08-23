@@ -1,5 +1,6 @@
 package http;
 
+import account.model.Account;
 import account.service.AccountService;
 import account.service.TransactionExecutor;
 import account.service.TransactionService;
@@ -52,8 +53,12 @@ public class AccountHandler extends AbstractHandler {
         if (matcher.matches()) {
             String accountId = matcher.group(1);
             System.out.println("Get wallet with ID " + accountId);
+            Account account = accountService.get(Long.valueOf(accountId));
+            if (account == null) {
+                return new ResponseBody(STATUS_NOT_FOUND);
+            }
             return new ResponseBody(
-                    new JSONObject(accountService.get(Long.valueOf(accountId))).toString(),
+                    new JSONObject(account).toString(),
                     STATUS_OK);
         }
         System.out.println("Show list with wallets ");

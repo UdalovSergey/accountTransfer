@@ -1,10 +1,8 @@
 package account.service;
 
-import account.model.Transaction;
-import account.model.TransactionStatus;
-import repository.Repository;
-import account.repository.AccountInmemoryRepository;
 import account.model.Account;
+import account.repository.AccountRepository;
+import repository.Repository;
 
 import java.math.BigDecimal;
 import java.util.Collection;
@@ -13,8 +11,7 @@ public class AccountService {
 
     private static AccountService service;
 
-    private final Repository<Account> repository = new AccountInmemoryRepository();
-
+    private final Repository<Account> repository = new AccountRepository();
 
     private AccountService() {
 
@@ -39,7 +36,6 @@ public class AccountService {
         return repository.getAll();
     }
 
-    //TODO: id creation
     public Account addAccount(String ownerName, BigDecimal amount) {
         return repository.put(new Account(ownerName, amount));
     }
@@ -48,7 +44,5 @@ public class AccountService {
     public void updateAccount(Account account) {
         repository.update(account);
     }
-
-
 
 }

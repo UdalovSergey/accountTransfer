@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
-public class AccountInmemoryRepository implements Repository<Account> {
+public class AccountRepository implements Repository<Account> {
 
     private final Map<Long, Account> accounts = new ConcurrentHashMap<>();
     private AtomicLong idCounter = new AtomicLong(0);
