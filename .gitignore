@@ -1,11 +1,11 @@
-    # Intellij
-    .idea/
-    *.iml
-    *.iws
+# Intellij
+.idea/
+*.iml
+*.iws
 
-    # Mac
-    .DS_Store
+# Mac
+.DS_Store
 
-    # Maven
-    log/
-    target/
+# Maven
+log/
+target/
