@@ -15,18 +15,18 @@ import java.util.regex.Pattern;
 
 public class AccountHandler extends AbstractHandler {
 
-    private static final Pattern PATTERN = Pattern.compile("/accounts/(\\d+?)/transfer/(\\d+?)");
-    private static final Pattern PUT_PATTERN = Pattern.compile("/accounts|/accounts/");
+    private static final Pattern TRANSFER_PATTERN = Pattern.compile("/accounts/(\\d+?)/transfer/(\\d+?)");
+    private static final Pattern ACCOUNTS_PATTERN = Pattern.compile("/accounts|/accounts/");
+    private static final Pattern ACCOUNTS_BY_ID_PATTERN = Pattern.compile("/accounts/(\\d+?)");
     private final AccountService accountService = AccountService.getInstance();
     private final TransactionService transactionService = TransactionService.getInstance();
-    private final TransactionExecutor transactionExecutor = new TransactionExecutor(transactionService);
 
     @Override
     protected ResponseBody post(HttpExchange he, Map<String, String> requestParameters, String requestBody) {
-        Matcher matcher = PATTERN.matcher(he.getRequestURI().getPath());
-        if (matcher.matches()) {
-            String accountIdFrom = matcher.group(1);
-            String accountIdTo = matcher.group(2);
+        Matcher transferMatcher = TRANSFER_PATTERN.matcher(he.getRequestURI().getPath());
+        if (transferMatcher.matches()) {
+            String accountIdFrom = transferMatcher.group(1);
+            String accountIdTo = transferMatcher.group(2);
             System.out.println("process transfer fro ID " + accountIdFrom + " to ID " + accountIdTo);
             JSONObject object = new JSONObject(requestBody);
             BigDecimal amountToTransfer = object.getBigDecimal("amount");
@@ -35,11 +35,13 @@ public class AccountHandler extends AbstractHandler {
                             .createNewTransaction(Long.valueOf(accountIdFrom), Long.valueOf(accountIdTo), amountToTransfer))
                             .toString(),
                     STATUS_CREATED);
-        } else if (PUT_PATTERN.matcher(he.getRequestURI().getPath()).matches()) {
+        } else if (ACCOUNTS_PATTERN.matcher(he.getRequestURI().getPath()).matches()) {
             JSONObject object = new JSONObject(requestBody);
             System.out.println("inserting new Account");
             return new ResponseBody(
-                    new JSONObject(accountService.addAccount(object.getString("ownerName"), object.getBigDecimal("amount"))).toString(),
+                    new JSONObject(accountService
+                            .addAccount(object.getString("ownerName"), object.getBigDecimal("amount")))
+                            .toString(),
                     STATUS_CREATED);
         }
 
@@ -48,10 +50,9 @@ public class AccountHandler extends AbstractHandler {
 
     @Override
     protected ResponseBody get(HttpExchange he, Map<String, String> requestParameters) {
-        Pattern pattern = Pattern.compile("/wallets/(\\d+?)");
-        Matcher matcher = pattern.matcher(he.getRequestURI().getPath());
-        if (matcher.matches()) {
-            String accountId = matcher.group(1);
+        Matcher accountByIdMatcher = ACCOUNTS_BY_ID_PATTERN.matcher(he.getRequestURI().getPath());
+        if (accountByIdMatcher.matches()) {
+            String accountId = accountByIdMatcher.group(1);
             System.out.println("Get wallet with ID " + accountId);
             Account account = accountService.get(Long.valueOf(accountId));
             if (account == null) {
@@ -60,10 +61,12 @@ public class AccountHandler extends AbstractHandler {
             return new ResponseBody(
                     new JSONObject(account).toString(),
                     STATUS_OK);
+        } else if (ACCOUNTS_PATTERN.matcher(he.getRequestURI().getPath()).matches()) {
+            System.out.println("Show list with wallets ");
+            return new ResponseBody(
+                    new JSONArray(accountService.getAll()).toString(),
+                    STATUS_OK);
         }
-        System.out.println("Show list with wallets ");
-        return new ResponseBody(
-                new JSONArray(accountService.getAll()).toString(),
-                STATUS_OK);
+        return new ResponseBody(STATUS_NOT_FOUND);
     }
 }

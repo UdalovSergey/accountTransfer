@@ -1,5 +1,6 @@
 package account.service;
 
+import account.exception.TransactionProcessingException;
 import account.model.Account;
 import account.model.Transaction;
 import account.model.TransactionStatus;
@@ -19,6 +20,9 @@ public class TransactionExecutor {
 
     public TransactionExecutor(TransactionService transactionService) {
         this.transactionService = transactionService;
+    }
+
+    public void start() {
         for (int i = 0; i < THREAD_PULL_SIZE; i++) {
             executor.execute(new Worker(i));
         }
@@ -54,27 +58,30 @@ public class TransactionExecutor {
             Transactions of the same account.
          */
         private void process(Transaction transaction) {
-            Long accFromId = transaction.getAccountFromId();
-            Long accToId = transaction.getAccountToId();
-            Object lock1 = accFromId < accToId ? accFromId : accToId;
-            Object lock2 = accFromId < accToId ? accToId : accFromId;
+            Long accountFromId = transaction.getAccountFromId();
+            Long accountToId = transaction.getAccountToId();
+            Object lock1 = accountFromId < accountToId ? accountFromId : accountToId;
+            Object lock2 = accountFromId < accountToId ? accountToId : accountFromId;
             synchronized (lock1) {
                 synchronized (lock2) {
                     if (transaction.getStatus() != TransactionStatus.NEW) {
-                        throw new RuntimeException("Transaction has the wrong state");
+                        throw new TransactionProcessingException(accountFromId,
+                                accountToId,
+                                transaction.getAmount(),
+                                String.format("Transaction has the wrong state. Expected [%s], but has [%s]", TransactionStatus.NEW, transaction.getStatus()));
                     }
-                    Account accountFrom = accountService.get(accFromId);
-                    Account accountTo = accountService.get(accToId);
+                    Account accountFrom = accountService.get(accountFromId);
+                    Account accountTo = accountService.get(accountToId);
                     BigDecimal amountToTransfer = transaction.getAmount();
 
                     BigDecimal newBlockedAmount = accountFrom.getBlockedAmount().subtract(amountToTransfer);
-                    BigDecimal newBalance = accountFrom.getAmount().subtract(amountToTransfer);
+                    BigDecimal newAmount = accountFrom.getAmount().subtract(amountToTransfer);
 
-                    if (newBlockedAmount.compareTo(BigDecimal.ZERO) < 0 || newBalance.compareTo(BigDecimal.ZERO) < 0) {
+                    if (newBlockedAmount.compareTo(BigDecimal.ZERO) < 0 || newAmount.compareTo(BigDecimal.ZERO) < 0) {
                         transaction.setStatus(TransactionStatus.FAILED);
                     } else {
                         accountFrom.setBlockedAmount(newBlockedAmount);
-                        accountFrom.setAmount(newBalance);
+                        accountFrom.setAmount(newAmount);
                         accountService.updateAccount(accountFrom);
 
                         accountTo.setAmount(accountTo.getAmount().add(amountToTransfer));

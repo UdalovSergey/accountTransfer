@@ -16,7 +16,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-//TODO Add error to http status supporting
 public abstract class AbstractHandler implements HttpHandler {
 
     private static final Charset CHARSET = StandardCharsets.UTF_8;

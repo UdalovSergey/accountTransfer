@@ -20,7 +20,8 @@ public class TransactionService {
     private BlockingQueue<Transaction> queue = new LinkedBlockingQueue<>();
 
     private TransactionService() {
-
+        TransactionExecutor transactionExecutor = new TransactionExecutor(this);
+        transactionExecutor.start();
     }
 
     public static TransactionService getInstance() {
@@ -34,30 +35,32 @@ public class TransactionService {
         return service;
     }
 
-
     public Transaction createNewTransaction(long accountFromId, long accountToId, BigDecimal amountToTransfer) {
         Long lock = accountFromId;
         Transaction newTransaction;
-        Account accountFrom = accountService.get(accountFromId);
-        Account accountTo = accountService.get(accountToId);
-        if (accountFrom == null) {
-            throw new AccountNotFoundException(accountFromId);
-        } else if (accountTo == null) {
-            throw new AccountNotFoundException(accountToId);
-        }
-
-        if (amountToTransfer.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new TransactionProcessingException(accountFromId, accountToId, amountToTransfer, "Transactions with zero and negative amount is not allowed");
-        }
-
-        if (accountFromId == accountToId) {
-            throw new TransactionProcessingException(accountFromId, accountToId, amountToTransfer, "Sender and receiver should be different");
-        }
-        if (accountFrom.getAmount().subtract(accountFrom.getBlockedAmount()).compareTo(amountToTransfer) < 0) {
-            throw new TransactionProcessingException(accountFromId, accountToId, amountToTransfer, "Not enough money");
-        }
-        //TODO: how to prevent concurrent update of accountFrom here and in the TransactionExecutor?
         synchronized (lock) {
+            Account accountFrom = accountService.get(accountFromId);
+            Account accountTo = accountService.get(accountToId);
+            if (accountFrom == null) {
+                throw new AccountNotFoundException(accountFromId);
+            } else if (accountTo == null) {
+                throw new AccountNotFoundException(accountToId);
+            }
+
+            if (amountToTransfer.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new TransactionProcessingException(accountFromId, accountToId, amountToTransfer,
+                        "Transactions with zero and negative amount is not allowed");
+            }
+
+            if (accountFromId == accountToId) {
+                throw new TransactionProcessingException(accountFromId, accountToId, amountToTransfer,
+                        "Sender and receiver should be different");
+            }
+            if (accountFrom.getAmount().subtract(accountFrom.getBlockedAmount()).compareTo(amountToTransfer) < 0) {
+                throw new TransactionProcessingException(accountFromId, accountToId, amountToTransfer,
+                        "Not enough money");
+            }
+
             accountFrom.setBlockedAmount(accountFrom.getBlockedAmount().add(amountToTransfer));
             accountService.updateAccount(accountFrom);
 

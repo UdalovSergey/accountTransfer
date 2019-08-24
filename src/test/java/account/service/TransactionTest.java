@@ -10,7 +10,6 @@ public class TransactionTest {
     @Test
     public void test() throws InterruptedException {
         TransactionService service = TransactionService.getInstance();
-        TransactionExecutor executor = new TransactionExecutor(service);
         AccountService accountService = AccountService.getInstance();
 
         Account account1 = accountService.addAccount("Ivan", new BigDecimal(1000));
@@ -21,7 +20,9 @@ public class TransactionTest {
         }
 
         Thread.sleep(1000);
-        System.out.println(accountService.get(account1.getId()).getAmount());
-        System.out.println(accountService.get(account2.getId()).getAmount());
+        Account acc1 = accountService.get(account1.getId());
+        Account acc2 = accountService.get(account2.getId());
+        System.out.println(acc1.getAmount() + " blocked " + acc1.getBlockedAmount());
+        System.out.println(acc2.getAmount() + " blocked " + acc2.getBlockedAmount());
     }
 }

@@ -40,7 +40,6 @@ public class AccountService {
         return repository.put(new Account(ownerName, amount));
     }
 
-    //TODO: it is not a threadsafe operation. Because amount can be changed accidentally
     public void updateAccount(Account account) {
         repository.update(account);
     }
