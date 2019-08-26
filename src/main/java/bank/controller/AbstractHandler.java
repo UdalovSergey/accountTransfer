@@ -104,6 +104,7 @@ public abstract class AbstractHandler implements HttpHandler {
         return new ResponseBody(message, status);
     }
 
+    //TODO: remove if it is no needed
     private static Map<String, String> getRequestParameters(final URI requestUri) {
         final Map<String, String> requestParameters = new LinkedHashMap<>();
         final String requestQuery = requestUri.getRawQuery();
@@ -119,6 +120,7 @@ public abstract class AbstractHandler implements HttpHandler {
         return requestParameters;
     }
 
+    //TODO: remove if it is no needed
     private static String decodeUrlComponent(final String urlComponent) {
         try {
             return URLDecoder.decode(urlComponent, CHARSET.name());

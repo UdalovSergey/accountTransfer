@@ -1,7 +1,7 @@
 package bank.transaction.repository;
 
-import bank.transaction.model.Transaction;
 import bank.repository.Repository;
+import bank.transaction.model.Transaction;
 
 import java.util.Collection;
 import java.util.Map;
@@ -11,25 +11,8 @@ import java.util.stream.Collectors;
 
 public class TransactionRepository implements Repository<Transaction> {
 
-    private static TransactionRepository repository;
-
     private final Map<Long, Transaction> transactions = new ConcurrentHashMap<>();
     private AtomicLong idCounter = new AtomicLong(0);
-
-    private TransactionRepository() {
-    }
-
-
-    public static TransactionRepository getInstance() {
-        if (repository == null) {
-            synchronized (TransactionRepository.class) {
-                if (repository == null) {
-                    repository = new TransactionRepository();
-                }
-            }
-        }
-        return repository;
-    }
 
 
     @Override

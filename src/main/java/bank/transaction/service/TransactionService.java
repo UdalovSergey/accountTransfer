@@ -1,12 +1,12 @@
 package bank.transaction.service;
 
 import bank.account.exception.AccountNotFoundException;
-import bank.transaction.exception.TransactionProcessingException;
 import bank.account.model.Account;
+import bank.account.service.AccountService;
+import bank.transaction.exception.TransactionProcessingException;
 import bank.transaction.model.Transaction;
 import bank.transaction.model.TransactionStatus;
 import bank.transaction.repository.TransactionRepository;
-import bank.account.service.AccountService;
 
 import java.math.BigDecimal;
 import java.util.concurrent.BlockingQueue;
@@ -14,25 +14,15 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class TransactionService {
 
-    private static TransactionService service;
-    private final AccountService accountService = AccountService.getInstance();
+    private final AccountService accountService;
 
-    private TransactionRepository repository = TransactionRepository.getInstance();
+    private TransactionRepository repository = new TransactionRepository();
     private BlockingQueue<Transaction> queue = new LinkedBlockingQueue<>();
 
-    private TransactionService() {
+    public TransactionService(AccountService accountService) {
+        this.accountService = accountService;
     }
 
-    public static TransactionService getInstance() {
-        if (service == null) {
-            synchronized (TransactionService.class) {
-                if (service == null) {
-                    service = new TransactionService();
-                }
-            }
-        }
-        return service;
-    }
 
     public Transaction createNewTransaction(long accountFromId, long accountToId, BigDecimal amountToTransfer) {
         Long lock = accountFromId;

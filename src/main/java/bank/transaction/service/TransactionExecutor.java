@@ -1,10 +1,10 @@
 package bank.transaction.service;
 
-import bank.transaction.exception.TransactionProcessingException;
 import bank.account.model.Account;
+import bank.account.service.AccountService;
+import bank.transaction.exception.TransactionProcessingException;
 import bank.transaction.model.Transaction;
 import bank.transaction.model.TransactionStatus;
-import bank.account.service.AccountService;
 
 import java.math.BigDecimal;
 import java.util.concurrent.BlockingQueue;
@@ -23,10 +23,11 @@ public class TransactionExecutor {
 
     private final Executor executor = Executors.newFixedThreadPool(THREAD_PULL_SIZE);
     private final TransactionService transactionService;
-    private final AccountService accountService = AccountService.getInstance();
+    private final AccountService accountService;
 
-    public TransactionExecutor(TransactionService transactionService) {
+    public TransactionExecutor(AccountService accountService, TransactionService transactionService) {
         this.transactionService = transactionService;
+        this.accountService = accountService;
     }
 
     public void start() {

@@ -20,8 +20,13 @@ public class AccountHandler extends AbstractHandler {
     private static final Pattern TRANSFER_PATTERN = Pattern.compile("/accounts/(\\d+?)/transfer/(\\d+?)");
     private static final Pattern ACCOUNTS_PATTERN = Pattern.compile("/accounts|/accounts/");
     private static final Pattern ACCOUNTS_BY_ID_PATTERN = Pattern.compile("/accounts/(\\d+?)");
-    private final AccountService accountService = AccountService.getInstance();
-    private final TransactionService transactionService = TransactionService.getInstance();
+    private final AccountService accountService;
+    private final TransactionService transactionService;
+
+    public AccountHandler(AccountService accountService, TransactionService transactionService) {
+        this.accountService = accountService;
+        this.transactionService = transactionService;
+    }
 
     @Override
     protected ResponseBody post(HttpExchange he, Map<String, String> requestParameters, String requestBody) {

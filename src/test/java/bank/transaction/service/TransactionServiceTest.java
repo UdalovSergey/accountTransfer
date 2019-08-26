@@ -13,8 +13,8 @@ import java.math.BigDecimal;
 
 public class TransactionServiceTest {
 
-    private static final AccountService accountService = AccountService.getInstance();
-    private static final TransactionService transactionService = TransactionService.getInstance();
+    private final AccountService accountService = new AccountService();
+    private final TransactionService transactionService = new TransactionService(accountService);
 
     @Test
     public void createNewTransaction() {

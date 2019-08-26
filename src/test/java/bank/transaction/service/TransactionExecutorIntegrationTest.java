@@ -5,6 +5,7 @@ import bank.account.service.AccountService;
 import bank.transaction.model.TransactionStatus;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -13,18 +14,18 @@ import java.util.List;
 
 public class TransactionExecutorIntegrationTest {
 
-    private static final AccountService accountService = AccountService.getInstance();
-    private static final TransactionService transactionService = TransactionService.getInstance();
+    private AccountService accountService;
+    private TransactionService transactionService;
 
-    @BeforeAll
-    public static void init() {
-        accountService.addAccount("From", BigDecimal.valueOf(1000));
-        accountService.addAccount("To", BigDecimal.valueOf(1000));
+    @BeforeEach
+    public void init() {
+        accountService = new AccountService();
+        transactionService = new TransactionService(accountService);
     }
 
     @Test
     public void concurrentCreationAndExecutionTest() throws InterruptedException {
-        TransactionExecutor transactionExecutor = new TransactionExecutor(transactionService);
+        TransactionExecutor transactionExecutor = new TransactionExecutor(accountService, transactionService);
         transactionExecutor.start();
 
         Account accountFrom = accountService.addAccount("From", BigDecimal.valueOf(1000));
