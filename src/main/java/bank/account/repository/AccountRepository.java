@@ -1,7 +1,7 @@
-package account.repository;
+package bank.account.repository;
 
-import repository.Repository;
-import account.model.Account;
+import bank.repository.Repository;
+import bank.account.model.Account;
 
 import java.util.Collection;
 import java.util.Map;
@@ -23,7 +23,7 @@ public class AccountRepository implements Repository<Account> {
     @Override
     public Collection<Account> getAll() {
         return accounts.values().stream()
-                .map(account -> new Account(account))
+                .map(Account::new)
                 .collect(Collectors.toList());
     }
 

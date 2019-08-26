@@ -1,6 +1,7 @@
-package account.service;
+package bank.transaction.service;
 
-import account.model.Account;
+import bank.account.model.Account;
+import bank.account.service.AccountService;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;

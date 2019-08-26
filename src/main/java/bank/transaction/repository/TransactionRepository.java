@@ -1,7 +1,7 @@
-package account.repository;
+package bank.transaction.repository;
 
-import account.model.Transaction;
-import repository.Repository;
+import bank.transaction.model.Transaction;
+import bank.repository.Repository;
 
 import java.util.Collection;
 import java.util.Map;

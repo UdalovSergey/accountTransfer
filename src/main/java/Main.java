@@ -1,6 +1,7 @@
-import account.service.TransactionExecutor;
+import bank.transaction.service.TransactionExecutor;
+import bank.transaction.service.TransactionService;
 import com.sun.net.httpserver.HttpServer;
-import http.AccountHandler;
+import bank.controller.AccountHandler;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -14,8 +15,10 @@ public class Main {
     public static void main(final String... args) throws IOException {
         final HttpServer server = HttpServer.create(new InetSocketAddress(HOSTNAME, PORT), BACKLOG);
         server.setExecutor(java.util.concurrent.Executors.newCachedThreadPool());
-
         server.createContext("/accounts", new AccountHandler());
         server.start();
+
+        TransactionExecutor transactionExecutor = new TransactionExecutor(TransactionService.getInstance());
+        transactionExecutor.start();
     }
 }

@@ -1,10 +1,10 @@
-package account.model;
+package bank.account.model;
 
 import java.math.BigDecimal;
 
 public class Account {
 
-    //TODO: ID should be set only once, without ability to change it
+    //TODO: ID should be set only once, without ability to change it. Ony repository should responses of it.
     private long id;
     private String ownerName;
     private BigDecimal amount;

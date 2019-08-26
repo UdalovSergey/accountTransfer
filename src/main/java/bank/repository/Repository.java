@@ -1,4 +1,4 @@
-package repository;
+package bank.repository;
 
 import java.util.Collection;
 

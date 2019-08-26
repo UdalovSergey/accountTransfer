@@ -1,8 +1,9 @@
-package account.service;
+package bank.account.service;
 
-import account.model.Account;
-import account.repository.AccountRepository;
-import repository.Repository;
+import bank.transaction.service.TransactionService;
+import bank.account.model.Account;
+import bank.account.repository.AccountRepository;
+import bank.repository.Repository;
 
 import java.math.BigDecimal;
 import java.util.Collection;

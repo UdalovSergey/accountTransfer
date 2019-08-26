@@ -1,9 +1,8 @@
-package http;
+package bank.controller;
 
-import account.model.Account;
-import account.service.AccountService;
-import account.service.TransactionExecutor;
-import account.service.TransactionService;
+import bank.account.model.Account;
+import bank.account.service.AccountService;
+import bank.transaction.service.TransactionService;
 import com.sun.net.httpserver.HttpExchange;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -13,6 +12,9 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Represents endpoints handler of basic operations over accounts.
+ */
 public class AccountHandler extends AbstractHandler {
 
     private static final Pattern TRANSFER_PATTERN = Pattern.compile("/accounts/(\\d+?)/transfer/(\\d+?)");
@@ -27,7 +29,6 @@ public class AccountHandler extends AbstractHandler {
         if (transferMatcher.matches()) {
             String accountIdFrom = transferMatcher.group(1);
             String accountIdTo = transferMatcher.group(2);
-            System.out.println("process transfer fro ID " + accountIdFrom + " to ID " + accountIdTo);
             JSONObject object = new JSONObject(requestBody);
             BigDecimal amountToTransfer = object.getBigDecimal("amount");
             return new ResponseBody(
@@ -37,7 +38,6 @@ public class AccountHandler extends AbstractHandler {
                     STATUS_CREATED);
         } else if (ACCOUNTS_PATTERN.matcher(he.getRequestURI().getPath()).matches()) {
             JSONObject object = new JSONObject(requestBody);
-            System.out.println("inserting new Account");
             return new ResponseBody(
                     new JSONObject(accountService
                             .addAccount(object.getString("ownerName"), object.getBigDecimal("amount")))
@@ -53,7 +53,6 @@ public class AccountHandler extends AbstractHandler {
         Matcher accountByIdMatcher = ACCOUNTS_BY_ID_PATTERN.matcher(he.getRequestURI().getPath());
         if (accountByIdMatcher.matches()) {
             String accountId = accountByIdMatcher.group(1);
-            System.out.println("Get wallet with ID " + accountId);
             Account account = accountService.get(Long.valueOf(accountId));
             if (account == null) {
                 return new ResponseBody(STATUS_NOT_FOUND);
@@ -62,7 +61,6 @@ public class AccountHandler extends AbstractHandler {
                     new JSONObject(account).toString(),
                     STATUS_OK);
         } else if (ACCOUNTS_PATTERN.matcher(he.getRequestURI().getPath()).matches()) {
-            System.out.println("Show list with wallets ");
             return new ResponseBody(
                     new JSONArray(accountService.getAll()).toString(),
                     STATUS_OK);

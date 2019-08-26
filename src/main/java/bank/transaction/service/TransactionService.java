@@ -1,11 +1,12 @@
-package account.service;
+package bank.transaction.service;
 
-import account.exception.AccountNotFoundException;
-import account.exception.TransactionProcessingException;
-import account.model.Account;
-import account.model.Transaction;
-import account.model.TransactionStatus;
-import account.repository.TransactionRepository;
+import bank.account.exception.AccountNotFoundException;
+import bank.transaction.exception.TransactionProcessingException;
+import bank.account.model.Account;
+import bank.transaction.model.Transaction;
+import bank.transaction.model.TransactionStatus;
+import bank.transaction.repository.TransactionRepository;
+import bank.account.service.AccountService;
 
 import java.math.BigDecimal;
 import java.util.concurrent.BlockingQueue;
@@ -20,8 +21,6 @@ public class TransactionService {
     private BlockingQueue<Transaction> queue = new LinkedBlockingQueue<>();
 
     private TransactionService() {
-        TransactionExecutor transactionExecutor = new TransactionExecutor(this);
-        transactionExecutor.start();
     }
 
     public static TransactionService getInstance() {

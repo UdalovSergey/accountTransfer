@@ -1,4 +1,4 @@
-package account.model;
+package bank.transaction.model;
 
 public enum TransactionStatus {
     NEW(1),

@@ -1,4 +1,4 @@
-package account.exception;
+package bank.account.exception;
 
 public class AccountNotFoundException extends RuntimeException{
 

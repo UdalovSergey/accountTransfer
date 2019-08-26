@@ -1,15 +1,22 @@
-package account.service;
+package bank.transaction.service;
 
-import account.exception.TransactionProcessingException;
-import account.model.Account;
-import account.model.Transaction;
-import account.model.TransactionStatus;
+import bank.transaction.exception.TransactionProcessingException;
+import bank.account.model.Account;
+import bank.transaction.model.Transaction;
+import bank.transaction.model.TransactionStatus;
+import bank.account.service.AccountService;
 
 import java.math.BigDecimal;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+/**
+ * Represents a transaction processor, which workers take transactions from a queue, and then process them with
+ * synchronisation.
+ * Attention - the processing order of transactions is not guaranteed, because two different workers can get different
+ * Transactions of the same account.
+ */
 public class TransactionExecutor {
 
     private final static int THREAD_PULL_SIZE = 10;
@@ -53,10 +60,6 @@ public class TransactionExecutor {
             return workerId;
         }
 
-        /*
-            Attention - the processing order of the transaction is not guaranteed, because two different worker can get different
-            Transactions of the same account.
-         */
         private void process(Transaction transaction) {
             Long accountFromId = transaction.getAccountFromId();
             Long accountToId = transaction.getAccountToId();
@@ -90,8 +93,6 @@ public class TransactionExecutor {
                         transaction.setStatus(TransactionStatus.SUCCESSFUL);
                     }
                     transactionService.updateTransaction(transaction);
-
-                    System.out.println("Worker id " + workerId + "  transaction id" + transaction.getId() + " hashL1:" + lock2.hashCode());
                 }
             }
 

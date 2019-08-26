@@ -1,4 +1,4 @@
-package http;
+package bank.controller;
 
 public class ResponseBody {
 

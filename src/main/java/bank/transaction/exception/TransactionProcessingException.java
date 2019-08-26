@@ -1,4 +1,4 @@
-package account.exception;
+package bank.transaction.exception;
 
 import java.math.BigDecimal;
 

@@ -1,4 +1,4 @@
-package account.model;
+package bank.transaction.model;
 
 import java.math.BigDecimal;
 
@@ -42,24 +42,12 @@ public class Transaction {
         return accountFromId;
     }
 
-    public void setAccountFromId(long accountFromId) {
-        this.accountFromId = accountFromId;
-    }
-
     public long getAccountToId() {
         return accountToId;
     }
 
-    public void setAccountToId(long accountToId) {
-        this.accountToId = accountToId;
-    }
-
     public BigDecimal getAmount() {
         return amount;
-    }
-
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
     }
 
     public TransactionStatus getStatus() {
