@@ -71,6 +71,10 @@ public class TransactionService {
         return newTransaction;
     }
 
+    public Transaction getById(long id) {
+        return repository.get(id);
+    }
+
     public void updateTransaction(Transaction transaction) {
         repository.update(transaction);
     }

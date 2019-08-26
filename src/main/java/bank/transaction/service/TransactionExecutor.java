@@ -35,11 +35,11 @@ public class TransactionExecutor {
         }
     }
 
-    private class Worker implements Runnable {
+    protected class Worker implements Runnable {
 
         private final int workerId;
 
-        private Worker(int workerId) {
+        Worker(int workerId) {
             this.workerId = workerId;
         }
 
@@ -60,7 +60,7 @@ public class TransactionExecutor {
             return workerId;
         }
 
-        private void process(Transaction transaction) {
+        void process(Transaction transaction) {
             Long accountFromId = transaction.getAccountFromId();
             Long accountToId = transaction.getAccountToId();
             Object lock1 = accountFromId < accountToId ? accountFromId : accountToId;

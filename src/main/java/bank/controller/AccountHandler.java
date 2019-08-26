@@ -13,7 +13,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Represents endpoints handler of basic operations over accounts.
+ * Represents endpoints handler of basic operations with accounts.
  */
 public class AccountHandler extends AbstractHandler {
 

@@ -5,6 +5,7 @@ import bank.transaction.exception.TransactionProcessingException;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -20,13 +21,13 @@ public abstract class AbstractHandler implements HttpHandler {
 
     private static final Charset CHARSET = StandardCharsets.UTF_8;
 
-    protected static final int STATUS_OK = 200;
-    protected static final int STATUS_CREATED = 201;
-    protected static final int STATUS_BAD_REQUEST = 400;
-    protected static final int STATUS_FORBIDDEN = 403;
-    protected static final int STATUS_NOT_FOUND = 404;
-    private static final int STATUS_METHOD_NOT_ALLOWED = 405;
-    private static final int STATUS_INTERNAL_SERVER_ERROR = 500;
+    public static final int STATUS_OK = 200;
+    public static final int STATUS_CREATED = 201;
+    public static final int STATUS_BAD_REQUEST = 400;
+    public static final int STATUS_FORBIDDEN = 403;
+    public static final int STATUS_NOT_FOUND = 404;
+    public static final int STATUS_METHOD_NOT_ALLOWED = 405;
+    public static final int STATUS_INTERNAL_SERVER_ERROR = 500;
 
     private static final int NO_RESPONSE_LENGTH = -1;
 
@@ -90,10 +91,11 @@ public abstract class AbstractHandler implements HttpHandler {
     }
 
     private ResponseBody buildErrorResponse(RuntimeException exception) {
+        String jsonResponse = new JSONObject(new ErrorMessage(exception.getMessage())).toString();
         if (exception instanceof AccountNotFoundException) {
-            return buildErrorResponse(STATUS_NOT_FOUND, exception.getMessage());
+            return buildErrorResponse(STATUS_NOT_FOUND, jsonResponse);
         } else if (exception instanceof TransactionProcessingException) {
-            return buildErrorResponse(STATUS_FORBIDDEN, exception.getMessage());
+            return buildErrorResponse(STATUS_FORBIDDEN, jsonResponse);
         }
         return buildErrorResponse(STATUS_INTERNAL_SERVER_ERROR, exception.getMessage());
     }
@@ -123,6 +125,19 @@ public abstract class AbstractHandler implements HttpHandler {
         } catch (final UnsupportedEncodingException ex) {
             throw new InternalError(ex);
         }
+    }
+
+    public static final class ErrorMessage {
+        private final String message;
+
+        private ErrorMessage(String message) {
+            this.message = message;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
     }
 
 }
