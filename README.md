@@ -10,13 +10,18 @@ Make a transfer "/accounts/_{accFromId}_/transactions/". Method **POST**. Payloa
 
 #### What does it consist of
 
-**Database** - based on the *ConcurrentHashMap*. To prevent direct access to objects into the Map, the Repository returns copy of objects.
+**Database** - based on the *ConcurrentHashMap*. To prevent direct access 
+to objects into the Map, the Repository returns copy of objects.
 
-**Transaction Executor** - It is a transaction processor, which grabs transactions from the queue and then process them in parallel. 
+**Transaction Executor** - It is a transaction processor, which grabs
+ transactions from the queue and then process them in parallel. 
+ I don't want to use Guava (striped) for associating a lock with an object, 
+ so I did my own simple implementation of it.
 
 **Service layer** - provides basic logic for managing transaction and accounts.
 
-**HTTP Server** - based on *com.sun.net.httpserver*. It doesn't have easy way to create endpoints and error handling, so I had to reinvent the wheel there.    
+**HTTP Server** - based on *com.sun.net.httpserver*. It doesn't have easy 
+way to create endpoints and error handling, so I had to reinvent the wheel there.    
 
 #### How to test
 

@@ -14,7 +14,7 @@ import java.math.BigDecimal;
 public class TransactionServiceTest {
 
     private final AccountService accountService = new AccountService();
-    private final TransactionService transactionService = new TransactionService(accountService);
+    private final TransactionService transactionService = new TransactionService(accountService, new Lock());
 
     @Test
     public void createNewTransaction() {

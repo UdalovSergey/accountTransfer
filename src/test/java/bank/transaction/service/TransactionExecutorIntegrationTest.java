@@ -16,16 +16,18 @@ public class TransactionExecutorIntegrationTest {
 
     private AccountService accountService;
     private TransactionService transactionService;
+    private Lock distributedLock;
 
     @BeforeEach
     public void init() {
+        distributedLock = new Lock();
         accountService = new AccountService();
-        transactionService = new TransactionService(accountService);
+        transactionService = new TransactionService(accountService, distributedLock);
     }
 
     @Test
     public void concurrentCreationAndExecutionTest() throws InterruptedException {
-        TransactionExecutor transactionExecutor = new TransactionExecutor(accountService, transactionService);
+        TransactionExecutor transactionExecutor = new TransactionExecutor(accountService, transactionService, distributedLock);
         transactionExecutor.start();
 
         Account accountFrom = accountService.addAccount("From", BigDecimal.valueOf(1000));

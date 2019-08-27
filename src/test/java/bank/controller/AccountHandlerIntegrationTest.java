@@ -3,6 +3,7 @@ package bank.controller;
 import bank.BankApplication;
 import bank.account.model.Account;
 import bank.account.service.AccountService;
+import bank.transaction.service.Lock;
 import bank.transaction.service.TransactionService;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -27,10 +28,11 @@ public class AccountHandlerIntegrationTest {
     @BeforeAll
     public static void init() throws IOException {
         accountService = new AccountService();
-        TransactionService transactionService = new TransactionService(accountService);
+        Lock distributedLock = new Lock();
+        TransactionService transactionService = new TransactionService(accountService, distributedLock);
 
         BankApplication.startServer(accountService, transactionService);
-        BankApplication.startTransactionExecutor(accountService, transactionService);
+        BankApplication.startTransactionExecutor(accountService, transactionService, distributedLock);
     }
 
     @Test

@@ -15,18 +15,19 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class TransactionService {
 
     private final AccountService accountService;
+    private final Lock distributedLock;
 
     private TransactionRepository repository = new TransactionRepository();
     private BlockingQueue<Transaction> queue = new LinkedBlockingQueue<>();
 
-    public TransactionService(AccountService accountService) {
+    public TransactionService(AccountService accountService, Lock distributedLock) {
         this.accountService = accountService;
+        this.distributedLock = distributedLock;
     }
 
     public Transaction createNewTransaction(long accountFromId, long accountToId, BigDecimal amountToTransfer) {
-        Long lock = accountFromId;
         Transaction newTransaction;
-        synchronized (lock) {
+        synchronized (distributedLock.get(accountFromId)) {
             Account accountFrom = accountService.get(accountFromId);
             Account accountTo = accountService.get(accountToId);
             if (accountFrom == null) {

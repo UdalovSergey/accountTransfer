@@ -23,10 +23,11 @@ public class TransactionExecutorTest {
     @BeforeEach
     public void init() {
         accountService = new AccountService();
-        transactionService = new TransactionService(accountService);
+        Lock distributedLock = new Lock();
+        transactionService = new TransactionService(accountService, distributedLock);
         accountFrom = accountService.addAccount("From", BigDecimal.valueOf(1000));
         accountTo = accountService.addAccount("To", BigDecimal.valueOf(1000));
-        worker = new TransactionExecutor(accountService, transactionService).new Worker(1);
+        worker = new TransactionExecutor(accountService, transactionService, distributedLock).new Worker(1);
     }
 
     @Test

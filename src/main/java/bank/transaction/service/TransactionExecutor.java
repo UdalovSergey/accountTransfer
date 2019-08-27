@@ -24,10 +24,12 @@ public class TransactionExecutor {
     private final Executor executor = Executors.newFixedThreadPool(THREAD_PULL_SIZE);
     private final TransactionService transactionService;
     private final AccountService accountService;
+    private final Lock distributedLock;
 
-    public TransactionExecutor(AccountService accountService, TransactionService transactionService) {
+    public TransactionExecutor(AccountService accountService, TransactionService transactionService, Lock distributedLock) {
         this.transactionService = transactionService;
         this.accountService = accountService;
+        this.distributedLock = distributedLock;
     }
 
     public void start() {
@@ -62,10 +64,10 @@ public class TransactionExecutor {
         }
 
         void process(Transaction transaction) {
-            Long accountFromId = transaction.getAccountFromId();
-            Long accountToId = transaction.getAccountToId();
-            Object lock1 = accountFromId < accountToId ? accountFromId : accountToId;
-            Object lock2 = accountFromId < accountToId ? accountToId : accountFromId;
+            long accountFromId = transaction.getAccountFromId();
+            long accountToId = transaction.getAccountToId();
+            Object lock1 = accountFromId < accountToId ? distributedLock.get(accountFromId) : distributedLock.get(accountToId);
+            Object lock2 = accountFromId < accountToId ? distributedLock.get(accountToId) : distributedLock.get(accountFromId);
             synchronized (lock1) {
                 synchronized (lock2) {
                     if (transaction.getStatus() != TransactionStatus.NEW) {
@@ -97,7 +99,6 @@ public class TransactionExecutor {
                     transactionService.updateTransaction(transaction);
                 }
             }
-
         }
     }
 

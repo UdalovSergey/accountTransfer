@@ -2,6 +2,7 @@ package bank;
 
 import bank.account.service.AccountService;
 import bank.controller.AccountHandler;
+import bank.transaction.service.Lock;
 import bank.transaction.service.TransactionExecutor;
 import bank.transaction.service.TransactionService;
 import com.sun.net.httpserver.HttpServer;
@@ -17,9 +18,10 @@ public class BankApplication {
 
     public static void main(final String... args) throws IOException {
         AccountService accountService = new AccountService();
-        TransactionService transactionService = new TransactionService(accountService);
+        Lock distributedLock = new Lock();
+        TransactionService transactionService = new TransactionService(accountService, distributedLock);
         startServer(accountService, transactionService);
-        startTransactionExecutor(accountService, transactionService);
+        startTransactionExecutor(accountService, transactionService, distributedLock);
     }
 
     public static void startServer(AccountService accountService, TransactionService transactionService) throws IOException {
@@ -29,8 +31,8 @@ public class BankApplication {
         server.start();
     }
 
-    public static void startTransactionExecutor(AccountService accountService, TransactionService transactionService) {
-        TransactionExecutor transactionExecutor = new TransactionExecutor(accountService, transactionService);
+    public static void startTransactionExecutor(AccountService accountService, TransactionService transactionService, Lock distributedLock) {
+        TransactionExecutor transactionExecutor = new TransactionExecutor(accountService, transactionService, distributedLock);
         transactionExecutor.start();
     }
 }
