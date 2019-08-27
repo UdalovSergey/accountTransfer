@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
  */
 public class AccountHandler extends AbstractHandler {
 
-    private static final Pattern TRANSFER_PATTERN = Pattern.compile("/accounts/(\\d+?)/transfer/(\\d+?)");
+    private static final Pattern TRANSACTION_PATTERN = Pattern.compile("/accounts/(\\d+?)/transactions");
     private static final Pattern ACCOUNTS_PATTERN = Pattern.compile("/accounts|/accounts/");
     private static final Pattern ACCOUNTS_BY_ID_PATTERN = Pattern.compile("/accounts/(\\d+?)");
     private final AccountService accountService;
@@ -27,18 +27,18 @@ public class AccountHandler extends AbstractHandler {
         this.accountService = accountService;
         this.transactionService = transactionService;
     }
-
+    
     @Override
     protected ResponseBody post(HttpExchange he, Map<String, String> requestParameters, String requestBody) {
-        Matcher transferMatcher = TRANSFER_PATTERN.matcher(he.getRequestURI().getPath());
+        Matcher transferMatcher = TRANSACTION_PATTERN.matcher(he.getRequestURI().getPath());
         if (transferMatcher.matches()) {
-            String accountIdFrom = transferMatcher.group(1);
-            String accountIdTo = transferMatcher.group(2);
             JSONObject object = new JSONObject(requestBody);
+            long accountFromId = Long.parseLong(transferMatcher.group(1));
+            long accountToId = object.getLong("accToId");
             BigDecimal amountToTransfer = object.getBigDecimal("amount");
             return new ResponseBody(
                     new JSONObject(transactionService
-                            .createNewTransaction(Long.valueOf(accountIdFrom), Long.valueOf(accountIdTo), amountToTransfer))
+                            .createNewTransaction(accountFromId, accountToId, amountToTransfer))
                             .toString(),
                     STATUS_CREATED);
         } else if (ACCOUNTS_PATTERN.matcher(he.getRequestURI().getPath()).matches()) {

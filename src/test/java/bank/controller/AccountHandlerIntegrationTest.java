@@ -76,8 +76,8 @@ public class AccountHandlerIntegrationTest {
         Account john = accountService.addAccount("John", BigDecimal.valueOf(1000));
         Account fred = accountService.addAccount("Fred", BigDecimal.valueOf(1000));
 
-        Response response = httpRequest("http://localhost:8080/accounts/" + john.getId() + "/transfer/" + fred.getId(),
-                "POST", new TransferPayload(BigDecimal.valueOf(500)));
+        Response response = httpRequest("http://localhost:8080/accounts/" + john.getId() + "/transactions",
+                "POST", new TransferPayload(fred.getId(), BigDecimal.valueOf(500)));
 
         JSONObject payload = new JSONObject(response.getPayload());
         Assertions.assertEquals(STATUS_CREATED, response.getStatus());
@@ -91,20 +91,20 @@ public class AccountHandlerIntegrationTest {
         Account john = accountService.addAccount("John", BigDecimal.valueOf(1000));
         Account fred = accountService.addAccount("Fred", BigDecimal.valueOf(1000));
 
-        Response response = httpRequest("http://localhost:8080/accounts/" + john.getId() + "/transfer/" + fred.getId(),
-                "POST", new TransferPayload(BigDecimal.valueOf(1100)));
+        Response response = httpRequest("http://localhost:8080/accounts/" + john.getId() + "/transactions",
+                "POST", new TransferPayload(fred.getId(), BigDecimal.valueOf(1100)));
         Assertions.assertEquals(STATUS_FORBIDDEN, response.getStatus());
 
-        response = httpRequest("http://localhost:8080/accounts/" + john.getId() + "/transfer/" + john.getId(),
-                "POST", new TransferPayload(BigDecimal.valueOf(500)));
+        response = httpRequest("http://localhost:8080/accounts/" + john.getId() + "/transactions",
+                "POST", new TransferPayload(john.getId(), BigDecimal.valueOf(500)));
         Assertions.assertEquals(STATUS_FORBIDDEN, response.getStatus());
 
-        response = httpRequest("http://localhost:8080/accounts/" + john.getId() + "/transfer/" + fred.getId(),
-                "POST", new TransferPayload(BigDecimal.ZERO));
+        response = httpRequest("http://localhost:8080/accounts/" + john.getId() + "/transactions",
+                "POST", new TransferPayload(fred.getId(), BigDecimal.ZERO));
         Assertions.assertEquals(STATUS_FORBIDDEN, response.getStatus());
 
-        response = httpRequest("http://localhost:8080/accounts/" + -1 + "/transfer/" + fred.getId(),
-                "POST", new TransferPayload(BigDecimal.ZERO));
+        response = httpRequest("http://localhost:8080/accounts/" + -1 + "/transactions",
+                "POST", new TransferPayload(fred.getId(), BigDecimal.ZERO));
         Assertions.assertEquals(STATUS_NOT_FOUND, response.getStatus());
     }
 
@@ -158,10 +158,16 @@ public class AccountHandlerIntegrationTest {
 
     public static class TransferPayload {
 
+        private long accToId;
         private BigDecimal amount;
 
-        public TransferPayload(BigDecimal amount) {
+        public TransferPayload(long accToId, BigDecimal amount) {
+            this.accToId = accToId;
             this.amount = amount;
+        }
+
+        public long getAccToId() {
+            return accToId;
         }
 
         public BigDecimal getAmount() {
