@@ -23,7 +23,6 @@ public class TransactionService {
         this.accountService = accountService;
     }
 
-
     public Transaction createNewTransaction(long accountFromId, long accountToId, BigDecimal amountToTransfer) {
         Long lock = accountFromId;
         Transaction newTransaction;
@@ -36,9 +35,9 @@ public class TransactionService {
                 throw new AccountNotFoundException(accountToId);
             }
 
-            if (amountToTransfer.compareTo(BigDecimal.ZERO) <= 0) {
+            if (amountToTransfer == null || amountToTransfer.compareTo(BigDecimal.ZERO) <= 0) {
                 throw new TransactionProcessingException(accountFromId, accountToId, amountToTransfer,
-                        "Transactions with zero and negative amount is not allowed");
+                        "Transactions with zero, negative or null amount is not allowed");
             }
 
             if (accountFromId == accountToId) {

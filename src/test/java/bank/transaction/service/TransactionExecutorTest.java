@@ -71,23 +71,4 @@ public class TransactionExecutorTest {
 
     }
 
-    @Test
-    public void createNewTransactionException() {
-
-        Assertions.assertThrows(TransactionProcessingException.class,
-                () -> transactionService.createNewTransaction(accountFrom.getId(), accountTo.getId(), BigDecimal.ZERO),
-                "Exception expected when amount is zero or below");
-
-        Assertions.assertThrows(TransactionProcessingException.class,
-                () -> transactionService.createNewTransaction(accountFrom.getId(), accountTo.getId(), BigDecimal.valueOf(-1)),
-                "Exception expected when amount is zero or below");
-
-        Assertions.assertThrows(TransactionProcessingException.class,
-                () -> transactionService.createNewTransaction(accountFrom.getId(), accountFrom.getId(), BigDecimal.valueOf(500)),
-                "Exception expected when accountFrom and accountTo are the same");
-
-        Assertions.assertThrows(TransactionProcessingException.class,
-                () -> transactionService.createNewTransaction(accountFrom.getId(), accountFrom.getId(), BigDecimal.valueOf(1500)),
-                "Exception expected when accountFrom and accountTo are the same");
-    }
 }

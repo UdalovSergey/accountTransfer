@@ -14,7 +14,6 @@ public class TransactionRepository implements Repository<Transaction> {
     private final Map<Long, Transaction> transactions = new ConcurrentHashMap<>();
     private AtomicLong idCounter = new AtomicLong(0);
 
-
     @Override
     public Transaction get(long id) {
         Transaction transaction = transactions.get(id);
@@ -31,7 +30,8 @@ public class TransactionRepository implements Repository<Transaction> {
     @Override
     public Transaction put(Transaction transaction) {
         long currentId = idCounter.getAndIncrement();
-        transactions.put(currentId, new Transaction(currentId, transaction.getAccountFromId(), transaction.getAccountToId(), transaction.getAmount(), transaction.getStatus()));
+        transactions.put(currentId, new Transaction(currentId, transaction.getAccountFromId(),
+                transaction.getAccountToId(), transaction.getAmount(), transaction.getStatus()));
         transaction.setId(currentId);
         return transaction;
     }

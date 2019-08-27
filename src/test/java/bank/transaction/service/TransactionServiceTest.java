@@ -33,4 +33,29 @@ public class TransactionServiceTest {
         transactionService.createNewTransaction(accountFrom.getId(), accountTo.getId(), BigDecimal.valueOf(200));
         Assertions.assertEquals(BigDecimal.valueOf(700), accountService.get(accountFrom.getId()).getBlockedAmount());
     }
+
+    @Test
+    public void createNewTransactionException() {
+        Account accountFrom = accountService.addAccount("From", BigDecimal.valueOf(1000));
+        Account accountTo = accountService.addAccount("To", BigDecimal.valueOf(1000));
+
+        Assertions.assertThrows(TransactionProcessingException.class,
+                () -> transactionService.createNewTransaction(accountFrom.getId(), accountTo.getId(), null));
+
+        Assertions.assertThrows(TransactionProcessingException.class,
+                () -> transactionService.createNewTransaction(accountFrom.getId(), accountTo.getId(), BigDecimal.ZERO),
+                "Exception expected when amount is zero or below");
+
+        Assertions.assertThrows(TransactionProcessingException.class,
+                () -> transactionService.createNewTransaction(accountFrom.getId(), accountTo.getId(), BigDecimal.valueOf(-1)),
+                "Exception expected when amount is zero or below");
+
+        Assertions.assertThrows(TransactionProcessingException.class,
+                () -> transactionService.createNewTransaction(accountFrom.getId(), accountFrom.getId(), BigDecimal.valueOf(500)),
+                "Exception expected when accountFrom and accountTo are the same");
+
+        Assertions.assertThrows(TransactionProcessingException.class,
+                () -> transactionService.createNewTransaction(accountFrom.getId(), accountFrom.getId(), BigDecimal.valueOf(1500)),
+                "Exception expected when accountFrom and accountTo are the same");
+    }
 }

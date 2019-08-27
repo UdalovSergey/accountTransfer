@@ -2,15 +2,15 @@ package bank.transaction.service;
 
 import bank.account.model.Account;
 import bank.account.service.AccountService;
+import bank.transaction.model.Transaction;
 import bank.transaction.model.TransactionStatus;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 public class TransactionExecutorIntegrationTest {
 
@@ -38,25 +38,26 @@ public class TransactionExecutorIntegrationTest {
         BigDecimal expectedFromBlockedAmount = BigDecimal.ZERO;
         BigDecimal expectedToAmount = accountTo.getAmount().add(totalToTransfer);
 
-        List<Long> ids = new ArrayList<>();
-        for (int i = 0; i < transactionsNumber; i++) {
-            ids.add(transactionService.createNewTransaction(accountFrom.getId(), accountTo.getId(), amountToTransfer).getId());
-        }
-
-        waitForTheCompletion(ids);
+        createTransactionsInParallel(transactionsNumber, accountFrom, accountTo, amountToTransfer);
+        waitForTheCompletion(transactionsNumber);
 
         Assertions.assertEquals(expectedFromAmount, accountService.get(accountFrom.getId()).getAmount());
         Assertions.assertEquals(expectedFromBlockedAmount, accountService.get(accountFrom.getId()).getBlockedAmount());
         Assertions.assertEquals(expectedToAmount, accountService.get(accountTo.getId()).getAmount());
     }
 
-    private void waitForTheCompletion(List<Long> ids) throws InterruptedException {
+    private void createTransactionsInParallel(int transactionsNumber, Account accountFrom, Account accountTo, BigDecimal amountToTransfer) {
+        Executor executor = Executors.newFixedThreadPool(10);
+        for (int i = 0; i < transactionsNumber; i++) {
+            executor.execute(() -> transactionService.createNewTransaction(accountFrom.getId(), accountTo.getId(), amountToTransfer));
+        }
+    }
+
+    private void waitForTheCompletion(int transactionsNumber) throws InterruptedException {
         Thread thread = new Thread(() -> {
             boolean check = false;
             while (!check) {
-                for (long id : ids) {
-                    check = transactionService.getById(id).getStatus().equals(TransactionStatus.SUCCESSFUL);
-                }
+                check = checkTransactionForSuccess(transactionsNumber);
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
@@ -65,13 +66,19 @@ public class TransactionExecutorIntegrationTest {
             }
         });
         thread.start();
-        thread.join(5000);
-        boolean check = false;
-        for (long id : ids) {
-            check = transactionService.getById(id).getStatus().equals(TransactionStatus.SUCCESSFUL);
-        }
+        thread.join(10000);
+        boolean check = checkTransactionForSuccess(transactionsNumber);
         if (!check) {
-            throw new RuntimeException("Something went wrong - the test has been working longer that 5 sec.");
+            throw new RuntimeException("Something went wrong - the test has been working longer that 10 sec.");
         }
+    }
+
+    private boolean checkTransactionForSuccess(int transactionsNumber) {
+        boolean check = false;
+        for (long id = 0; id < transactionsNumber; id++) {
+            Transaction transaction = transactionService.getById(id);
+            check = transaction != null && transaction.getStatus().equals(TransactionStatus.SUCCESSFUL);
+        }
+        return check;
     }
 }

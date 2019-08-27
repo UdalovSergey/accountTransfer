@@ -15,7 +15,7 @@ import java.util.concurrent.Executors;
  * Represents a transaction processor, which workers take transactions from a queue, and then process them with
  * synchronisation.
  * Attention - the processing order of transactions is not guaranteed, because two different workers can get different
- * Transactions of the same account.
+ * transactions of the same account. More complicated logic is needed (e.g. one thread per account).
  */
 public class TransactionExecutor {
 
@@ -72,7 +72,8 @@ public class TransactionExecutor {
                         throw new TransactionProcessingException(accountFromId,
                                 accountToId,
                                 transaction.getAmount(),
-                                String.format("Transaction has the wrong state. Expected [%s], but has [%s]", TransactionStatus.NEW, transaction.getStatus()));
+                                String.format("Transaction has the wrong state. Expected [%s], but has [%s]",
+                                        TransactionStatus.NEW, transaction.getStatus()));
                     }
                     Account accountFrom = accountService.get(accountFromId);
                     Account accountTo = accountService.get(accountToId);
