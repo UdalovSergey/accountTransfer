@@ -5,6 +5,7 @@ import com.github.udalovsergey.bank.account.model.Account;
 import com.github.udalovsergey.bank.account.service.AccountService;
 import com.github.udalovsergey.bank.transaction.service.Lock;
 import com.github.udalovsergey.bank.transaction.service.TransactionService;
+import org.eclipse.jetty.http.HttpStatus;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Assertions;
@@ -19,19 +20,17 @@ import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import static com.github.udalovsergey.bank.controller.AbstractHandler.*;
-
 public class AccountHandlerIntegrationTest {
 
     private static AccountService accountService;
 
     @BeforeAll
-    public static void init() throws IOException {
+    public static void init() throws Exception {
         accountService = new AccountService();
         Lock distributedLock = new Lock();
         TransactionService transactionService = new TransactionService(accountService, distributedLock);
 
-        BankApplication.startServer(accountService, transactionService);
+        BankApplication.startJettyServer(accountService, transactionService);
         BankApplication.startTransactionExecutor(accountService, transactionService, distributedLock);
     }
 
@@ -42,7 +41,7 @@ public class AccountHandlerIntegrationTest {
 
         JSONObject payload = new JSONObject(response.getPayload());
 
-        Assertions.assertEquals(STATUS_CREATED, response.getStatus());
+        Assertions.assertEquals(HttpStatus.CREATED_201, response.getStatus());
         Assertions.assertEquals(newAccount.getOwnerName(), payload.get("ownerName"));
         Assertions.assertEquals(newAccount.getAmount(), payload.getBigDecimal("amount"));
     }
@@ -55,7 +54,7 @@ public class AccountHandlerIntegrationTest {
         Response response = httpRequest("http://localhost:8080/accounts/", "GET", null);
 
         JSONArray payload = new JSONArray(response.getPayload());
-        Assertions.assertEquals(STATUS_OK, response.getStatus());
+        Assertions.assertEquals(HttpStatus.OK_200, response.getStatus());
         Assertions.assertEquals(john.getOwnerName(), payload.getJSONObject((int) john.getId()).get("ownerName"));
         Assertions.assertEquals(fred.getAmount(), payload.getJSONObject((int) fred.getId()).getBigDecimal("amount"));
     }
@@ -66,11 +65,11 @@ public class AccountHandlerIntegrationTest {
         Response response = httpRequest("http://localhost:8080/accounts/" + john.getId(), "GET", null);
 
         JSONObject payload = new JSONObject(response.getPayload());
-        Assertions.assertEquals(STATUS_OK, response.getStatus());
+        Assertions.assertEquals(HttpStatus.OK_200, response.getStatus());
         Assertions.assertEquals(john.getOwnerName(), payload.get("ownerName"));
 
         response = httpRequest("http://localhost:8080/accounts/" + -1, "GET", null);
-        Assertions.assertEquals(STATUS_NOT_FOUND, response.getStatus());
+        Assertions.assertEquals(HttpStatus.NOT_FOUND_404, response.getStatus());
     }
 
     @Test
@@ -82,7 +81,7 @@ public class AccountHandlerIntegrationTest {
                 "POST", new TransferPayload(fred.getId(), BigDecimal.valueOf(500)));
 
         JSONObject payload = new JSONObject(response.getPayload());
-        Assertions.assertEquals(STATUS_CREATED, response.getStatus());
+        Assertions.assertEquals(HttpStatus.CREATED_201, response.getStatus());
         Assertions.assertEquals(john.getId(), payload.getLong("accountFromId"));
         Assertions.assertEquals(fred.getId(), payload.getLong("accountToId"));
         Assertions.assertEquals(BigDecimal.valueOf(500), payload.getBigDecimal("amount"));
@@ -95,19 +94,19 @@ public class AccountHandlerIntegrationTest {
 
         Response response = httpRequest("http://localhost:8080/accounts/" + john.getId() + "/transactions",
                 "POST", new TransferPayload(fred.getId(), BigDecimal.valueOf(1100)));
-        Assertions.assertEquals(STATUS_FORBIDDEN, response.getStatus());
+        Assertions.assertEquals(HttpStatus.FORBIDDEN_403, response.getStatus());
 
         response = httpRequest("http://localhost:8080/accounts/" + john.getId() + "/transactions",
                 "POST", new TransferPayload(john.getId(), BigDecimal.valueOf(500)));
-        Assertions.assertEquals(STATUS_FORBIDDEN, response.getStatus());
+        Assertions.assertEquals(HttpStatus.FORBIDDEN_403, response.getStatus());
 
         response = httpRequest("http://localhost:8080/accounts/" + john.getId() + "/transactions",
                 "POST", new TransferPayload(fred.getId(), BigDecimal.ZERO));
-        Assertions.assertEquals(STATUS_FORBIDDEN, response.getStatus());
+        Assertions.assertEquals(HttpStatus.FORBIDDEN_403, response.getStatus());
 
         response = httpRequest("http://localhost:8080/accounts/" + -1 + "/transactions",
                 "POST", new TransferPayload(fred.getId(), BigDecimal.ZERO));
-        Assertions.assertEquals(STATUS_NOT_FOUND, response.getStatus());
+        Assertions.assertEquals(HttpStatus.NOT_FOUND_404, response.getStatus());
     }
 
     private Response httpRequest(String endpoint, String method, Object requestBody) throws IOException {
@@ -137,8 +136,7 @@ public class AccountHandlerIntegrationTest {
 
         private String readResponse(HttpURLConnection con) {
             StringBuilder content = new StringBuilder();
-            try (BufferedReader in = new BufferedReader(new InputStreamReader(
-                    con.getResponseCode() < 300 ? con.getInputStream() : con.getErrorStream()))) {
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()))) {
                 String inputLine;
                 while ((inputLine = in.readLine()) != null) {
                     content.append(inputLine);

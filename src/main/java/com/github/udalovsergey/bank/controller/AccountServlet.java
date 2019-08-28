@@ -36,6 +36,7 @@ public class AccountServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         Matcher accountByIdMatcher = ACCOUNTS_BY_ID_PATTERN.matcher(request.getRequestURI());
         if (accountByIdMatcher.matches()) {
+            //Get account by Id
             String accountId = accountByIdMatcher.group(1);
             Account account = accountService.get(Long.valueOf(accountId));
             if (account == null) {
@@ -45,6 +46,7 @@ public class AccountServlet extends HttpServlet {
             writeJsonResponse(response, new JSONObject(account).toString(), HttpStatus.OK_200);
             return;
         } else if (ACCOUNTS_PATTERN.matcher(request.getRequestURI()).matches()) {
+            //Get all accounts
             writeJsonResponse(response, new JSONArray(accountService.getAll()).toString(), HttpStatus.OK_200);
             return;
         }
@@ -56,14 +58,18 @@ public class AccountServlet extends HttpServlet {
         String requestBody = request.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
         Matcher transferMatcher = TRANSACTION_PATTERN.matcher(request.getRequestURI());
         if (transferMatcher.matches()) {
+            //Create a new transaction
             JSONObject object = new JSONObject(requestBody);
             long accountFromId = Long.parseLong(transferMatcher.group(1));
             long accountToId = object.getLong("accToId");
             BigDecimal amountToTransfer = object.getBigDecimal("amount");
-            Transaction transaction = transactionService.createNewTransaction(accountFromId, accountToId, amountToTransfer);
-            writeJsonResponse(response, new JSONObject(transaction).toString(), HttpStatus.CREATED_201);
+            writeJsonResponse(response,
+                    new JSONObject(transactionService.createNewTransaction(accountFromId, accountToId, amountToTransfer))
+                            .toString(),
+                    HttpStatus.CREATED_201);
             return;
         } else if (ACCOUNTS_PATTERN.matcher(request.getRequestURI()).matches()) {
+            //Create a new Account
             JSONObject object = new JSONObject(requestBody);
             writeJsonResponse(response,
                     new JSONObject(accountService.addAccount(object.getString("ownerName"), object.getBigDecimal("amount")))
