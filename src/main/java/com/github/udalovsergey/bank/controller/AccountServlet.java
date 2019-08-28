@@ -2,7 +2,6 @@ package com.github.udalovsergey.bank.controller;
 
 import com.github.udalovsergey.bank.account.model.Account;
 import com.github.udalovsergey.bank.account.service.AccountService;
-import com.github.udalovsergey.bank.transaction.model.Transaction;
 import com.github.udalovsergey.bank.transaction.service.TransactionService;
 import org.eclipse.jetty.http.HttpStatus;
 import org.json.JSONArray;

@@ -14,19 +14,22 @@ import java.io.PrintWriter;
 
 public class BankErrorHandler extends ErrorHandler {
 
-
+    @Override
     public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException {
         Throwable exception = (Throwable) request.getAttribute("javax.servlet.error.exception");
-
-        String jsonResponse = new JSONObject(new ErrorMessage(exception.getMessage())).toString();
-        if (exception instanceof AccountNotFoundException) {
-            writeJsonResponse(response, jsonResponse, HttpStatus.NOT_FOUND_404);
-            return;
-        } else if (exception instanceof TransactionProcessingException) {
-            writeJsonResponse(response, jsonResponse, HttpStatus.FORBIDDEN_403);
-            return;
+        if (exception != null) {
+            String jsonResponse = new JSONObject(new ErrorMessage(exception.getMessage())).toString();
+            if (exception instanceof AccountNotFoundException) {
+                writeJsonResponse(response, jsonResponse, HttpStatus.NOT_FOUND_404);
+                return;
+            } else if (exception instanceof TransactionProcessingException) {
+                writeJsonResponse(response, jsonResponse, HttpStatus.FORBIDDEN_403);
+                return;
+            }
+            writeJsonResponse(response, jsonResponse, HttpStatus.INTERNAL_SERVER_ERROR_500);
+        } else {
+            writeJsonResponse(response, new JSONObject(new ErrorMessage(response.toString())).toString(), response.getStatus());
         }
-        writeJsonResponse(response, jsonResponse, HttpStatus.INTERNAL_SERVER_ERROR_500);
     }
 
     private void writeJsonResponse(HttpServletResponse response, String jsonString, int httpStatus) throws IOException {

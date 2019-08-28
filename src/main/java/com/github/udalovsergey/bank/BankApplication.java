@@ -36,13 +36,12 @@ public class BankApplication {
         int maxThreads = 100;
         int minThreads = 10;
         int idleTimeout = 120;
-
         QueuedThreadPool threadPool = new QueuedThreadPool(maxThreads, minThreads, idleTimeout);
-
         Server server = new Server(threadPool);
-        ServerConnector connector = new ServerConnector(server);
-        connector.setPort(PORT);
-        server.setConnectors(new Connector[]{connector});
+        try (ServerConnector connector = new ServerConnector(server)) {
+            connector.setPort(PORT);
+            server.setConnectors(new Connector[]{connector});
+        }
 
         ServletContextHandler context = new ServletContextHandler(NO_SESSIONS);
         context.setContextPath("/");
